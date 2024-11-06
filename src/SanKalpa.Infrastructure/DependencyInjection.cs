@@ -2,8 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SanKalpa.Application.Abstrations.Data;
+using SanKalpa.Application.Services;
 using SanKalpa.Domain.Abstrations;
 using SanKalpa.Infrastructure.Data;
+using SanKalpa.Infrastructure.Services;
 
 namespace SanKalpa.Infrastructure;
 
@@ -35,5 +37,13 @@ public static class DependencyInjection
 
         services.AddSingleton<ISqlConnectionFactory>(_ =>
             new SqlConnectionFactory(connectionString));
+
+        services.AddHttpClient<TwseHttpClient>(client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
+        services.AddScoped<ITwseDataService, TwseDataService>();
     }
 }
