@@ -1,0 +1,6 @@
+@SanKalpa.Api_HostAddress = http://localhost:5078
+
+GET {{SanKalpa.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
