@@ -1,9 +1,9 @@
-﻿using SanKalpa.Domain;
+﻿using SanKalpa.Domain.Services;
 using System.Security.Cryptography;
 
-namespace SanKalpa.Infrastructure.Users;
+namespace SanKalpa.Infrastructure.Services;
 
-internal sealed class PasswordHasher : IPasswordHasher
+internal sealed class PasswordHashService : IPasswordHashService
 {
     private const int SaltSize = 16;
     private const int HashSize = 32;

@@ -6,10 +6,11 @@ namespace SanKalpa.Domain.Users;
 
 public sealed class User : Entity
 {
-    public string IdentityId { get; private set; } = string.Empty;
-    public FirstName FirstName { get; private set; }
-    public LastName LastName { get; private set; }
+    public UserName UserName { get; private set; }
     public EmailAddress EmailAddress { get; private set; }
+    public Password UserPassword { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
 
     private User()
     {
@@ -17,39 +18,31 @@ public sealed class User : Entity
 
     private User(
         Guid id,
-        FirstName firstName,
-        LastName lastName,
-        EmailAddress emailAddress)
+        UserName userName,
+        EmailAddress emailAddress,
+        Password userPassword) 
         : base(id)
     {
-        FirstName = firstName;
-        LastName = lastName;
+        UserName = userName;
         EmailAddress = emailAddress;
+        UserPassword = userPassword;
+        CreatedAt = DateTime.Now;
+        UpdatedAt = DateTime.Now;
     }
 
     public static User Create(
-        FirstName firstName,
-        LastName lastName,
-        EmailAddress emailAddress)
+        UserName userName,
+        EmailAddress emailAddress,
+        Password userPassword)
     {
         var user = new User(
             Guid.NewGuid(),
-            firstName,
-            lastName,
-            emailAddress);
+            userName,
+            emailAddress,
+            userPassword);
 
         user.RaiseDomainEvent(new UserCreatedDomainEvent(user.Id));
+
         return user;
-    }
-
-    public void SetIdentityId(string identityId)
-    {
-        IdentityId = identityId;
-    }
-
-    public void UpdateNames(FirstName firstName, LastName lastName)
-    {
-        FirstName = firstName;
-        LastName = lastName;
     }
 }

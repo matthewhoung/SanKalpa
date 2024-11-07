@@ -1,6 +1,6 @@
-﻿namespace SanKalpa.Domain;
+﻿namespace SanKalpa.Domain.Services;
 
-public interface IPasswordHasher
+public interface IPasswordHashService
 {
     string HashPassword(string password);
     bool VerifyHashedPassword(string hashedPassword, string password);

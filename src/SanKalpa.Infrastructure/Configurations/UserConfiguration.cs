@@ -13,17 +13,10 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasKey(key => key.Id);
 
-        builder.Property(firstName => firstName.FirstName)
-            .HasColumnName("first_name")
+        builder.Property(userName => userName.UserName)
+            .HasColumnName("user_name")
             .HasConversion(firstName => firstName.Value,
-                           value => new FirstName(value))
-            .HasMaxLength(20)
-            .IsRequired();
-
-        builder.Property(lastName => lastName.LastName)
-            .HasColumnName("last_name")
-            .HasConversion(lastName => lastName.Value,
-                           value => new LastName(value))
+                           value => new UserName(value))
             .HasMaxLength(20)
             .IsRequired();
 
@@ -34,8 +27,21 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(userPassword => userPassword.UserPassword)
+            .HasColumnName("user_password")
+            .HasConversion(userPassword => userPassword.Value,
+                           value => new Password(value))
+            .HasMaxLength(255)
+            .IsRequired();
+
         builder.HasIndex(emailAddress => emailAddress.EmailAddress).IsUnique();
 
-        builder.HasIndex(identity => identity.IdentityId).IsUnique();
+        builder.Property(createdAt => createdAt.CreatedAt)
+            .HasColumnName("created_at")
+            .IsRequired();
+
+        builder.Property(updatedAt => updatedAt.UpdatedAt)
+            .HasColumnName("updated_at")
+            .IsRequired();
     }
 }

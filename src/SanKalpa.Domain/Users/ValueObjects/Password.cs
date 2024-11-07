@@ -1,3 +1,3 @@
 ﻿namespace SanKalpa.Domain.Users.ValueObjects;
 
-public record class FirstName(string Value);
+public record class Password(string Value);
