@@ -41,14 +41,11 @@ internal sealed class UserInfoQueryHandler : IQueryHandler<UserInfoQuery, UserIn
             sql,
             parameters);
 
-        var response = new UserInfoQueryResponse
+        if (result is null)
         {
-            UserId = result.UserId,
-            UserName = result.UserName,
-            EmailAddress = result.EmailAddress,
-            CreatedAt = result.CreatedAt
-        };
+            return Result.Failure<UserInfoQueryResponse>(new Error("UserNotFound", "User Information not found"));
+        }
 
-        return Result<UserInfoQueryResponse>.Success(response);
+        return Result.Success(result);
     }
 }

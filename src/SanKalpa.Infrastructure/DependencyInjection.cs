@@ -53,13 +53,20 @@ public static class DependencyInjection
         IServiceCollection services,
         IConfiguration configuration)
     {
-        services.ConfigureOptions<JwtConfiguration>();
+        // Configure JWT options
+        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.ConfigureOptions<JwtOptionsSetup>();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        // Add Authentication with JWT Bearer
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer();
 
-        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
-
+        // Register services
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
     }
