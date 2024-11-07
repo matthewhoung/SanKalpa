@@ -1,3 +1,4 @@
+using SanKalpa.Api.Extensions;
 using SanKalpa.Application;
 using SanKalpa.Infrastructure;
 
@@ -17,8 +18,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.ApplyMigrations();
 }
 
 app.UseHttpsRedirection();
+
+app.UseCustomExceptionHandler();
+
+app.MapControllers();
 
 app.Run();

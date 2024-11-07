@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SanKalpa.Application.Abstrations.Data;
-using SanKalpa.Application.Services;
 using SanKalpa.Domain.Abstrations;
 using SanKalpa.Infrastructure.Data;
-using SanKalpa.Infrastructure.Services;
 
 namespace SanKalpa.Infrastructure;
 
