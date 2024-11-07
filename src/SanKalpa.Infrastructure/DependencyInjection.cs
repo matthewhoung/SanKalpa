@@ -37,13 +37,5 @@ public static class DependencyInjection
 
         services.AddSingleton<ISqlConnectionFactory>(_ =>
             new SqlConnectionFactory(connectionString));
-
-        services.AddHttpClient<TwseHttpClient>(client =>
-        {
-            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
-
-        services.AddScoped<ITwseDataService, TwseDataService>();
     }
 }

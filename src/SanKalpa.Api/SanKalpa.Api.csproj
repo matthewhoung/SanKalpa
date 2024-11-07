@@ -20,4 +20,8 @@
     <ProjectReference Include="..\SanKalpa.Infrastructure\SanKalpa.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controller\" />
+  </ItemGroup>
+
 </Project>
