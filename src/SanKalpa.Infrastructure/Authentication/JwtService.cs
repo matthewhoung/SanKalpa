@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SanKalpa.Application.Abstrations.Authentication;
 using SanKalpa.Domain.Users;
@@ -12,116 +11,59 @@ namespace SanKalpa.Infrastructure.Authentication;
 public sealed class JwtService : IJwtService
 {
     private readonly JwtOptions _jwtOptions;
-    private readonly ILogger<JwtService> _logger;
 
-    public JwtService(IOptions<JwtOptions> jwtOptions, ILogger<JwtService> logger)
+    public JwtService(IOptions<JwtOptions> jwtOptions)
     {
         _jwtOptions = jwtOptions.Value;
-        _logger = logger;
     }
 
     public string GenerateJwtToken(User user)
     {
-        try
+        var claims = new List<Claim>
         {
-            var secretKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.EmailAddress.Value)
+        };
 
-            var signingCredentials = new SigningCredentials(
-                secretKey,
-                SecurityAlgorithms.HmacSha256);
+        var secretKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
 
-            var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new(JwtRegisteredClaimNames.Email, user.EmailAddress.Value),
-                new(ClaimTypes.Name, user.UserName.Value),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                // Add roles if you have them
-                // new(ClaimTypes.Role, "user"),
-            };
+        var creds = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+        var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes);
 
-            var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes);
+        var token = new JwtSecurityToken(
+            issuer: _jwtOptions.Issuer,
+            audience: _jwtOptions.Audience,
+            claims: claims,
+            expires: expires,
+            signingCredentials: creds);
 
-            var securityToken = new JwtSecurityToken(
-                issuer: _jwtOptions.Issuer,
-                audience: _jwtOptions.Audience,
-                expires: expires,
-                claims: claims,
-                signingCredentials: signingCredentials);
-
-            var token = new JwtSecurityTokenHandler().WriteToken(securityToken);
-
-            _logger.LogInformation("Generated JWT token for user {UserId}, expires at {ExpiryTime}",
-                user.Id, expires);
-
-            return token;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating JWT token for user {UserId}", user.Id);
-            throw;
-        }
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public ClaimsPrincipal? ValidateToken(string token)
     {
-        if (string.IsNullOrEmpty(token))
-        {
-            _logger.LogWarning("Empty token provided for validation");
-            return null;
-        }
-
         var tokenHandler = new JwtSecurityTokenHandler();
         var secretKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
 
         try
         {
-            var validationParameters = new TokenValidationParameters
+            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
                 ValidIssuer = _jwtOptions.Issuer,
+                ValidateAudience = true,
                 ValidAudience = _jwtOptions.Audience,
+                ValidateIssuerSigningKey = true,
                 IssuerSigningKey = secretKey,
-                ClockSkew = TimeSpan.Zero,
-                RequireSignedTokens = true,
-                RequireExpirationTime = true
-            };
+                ClockSkew = TimeSpan.Zero
+            }, out SecurityToken validatedToken);
 
-            var principal = tokenHandler.ValidateToken(
-                token,
-                validationParameters,
-                out var validatedToken);
-
-            if (validatedToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(
-                    SecurityAlgorithms.HmacSha256,
-                    StringComparison.InvariantCultureIgnoreCase))
-            {
-                _logger.LogWarning("Invalid token algorithm");
-                return null;
-            }
-
-            _logger.LogInformation("Token validated successfully");
             return principal;
         }
-        catch (SecurityTokenExpiredException)
+        catch
         {
-            _logger.LogWarning("Token has expired");
-            return null;
-        }
-        catch (SecurityTokenInvalidSignatureException)
-        {
-            _logger.LogWarning("Invalid token signature");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Token validation failed");
             return null;
         }
     }
