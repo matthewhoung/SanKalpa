@@ -8,7 +8,7 @@ public sealed class User : Entity
 {
     public UserName UserName { get; private set; }
     public EmailAddress EmailAddress { get; private set; }
-    public Password UserPassword { get; private set; }
+    public Password Password { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -25,7 +25,7 @@ public sealed class User : Entity
     {
         UserName = userName;
         EmailAddress = emailAddress;
-        UserPassword = userPassword;
+        Password = userPassword;
         CreatedAt = DateTime.Now;
         UpdatedAt = DateTime.Now;
     }

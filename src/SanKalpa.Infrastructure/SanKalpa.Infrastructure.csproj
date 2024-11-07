@@ -16,8 +16,4 @@
     <ProjectReference Include="..\SanKalpa.Application\SanKalpa.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Authentication\" />
-  </ItemGroup>
-
 </Project>

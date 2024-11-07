@@ -1,10 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SanKalpa.Application.Abstrations.Data;
 using SanKalpa.Domain.Abstrations;
 using SanKalpa.Domain.Services;
 using SanKalpa.Domain.Users;
+using SanKalpa.Infrastructure.Authentication;
 using SanKalpa.Infrastructure.Data;
 using SanKalpa.Infrastructure.Repositories;
 using SanKalpa.Infrastructure.Services;
@@ -18,6 +20,8 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         AddPersistence(services, configuration);
+
+        AddAuthentication(services, configuration);
 
         return services;
     }
@@ -42,5 +46,15 @@ public static class DependencyInjection
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasswordHashService, PasswordHashService>();
+    }
+
+    private static void AddAuthentication(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
+        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+        services.ConfigureOptions<JwtOptionsSetup>();
     }
 }

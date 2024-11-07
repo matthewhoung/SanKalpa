@@ -27,7 +27,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(userPassword => userPassword.UserPassword)
+        builder.Property(userPassword => userPassword.Password)
             .HasColumnName("user_password")
             .HasConversion(userPassword => userPassword.Value,
                            value => new Password(value))
