@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SanKalpa.Application.Abstrations.Authentication;
 using SanKalpa.Application.Abstrations.Data;
 using SanKalpa.Domain.Abstrations;
 using SanKalpa.Domain.Services;
@@ -52,9 +53,14 @@ public static class DependencyInjection
         IServiceCollection services,
         IConfiguration configuration)
     {
+        services.ConfigureOptions<JwtConfiguration>();
+        services.ConfigureOptions<JwtOptionsSetup>();
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
-        services.ConfigureOptions<JwtOptionsSetup>();
+
+        services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
     }
 }

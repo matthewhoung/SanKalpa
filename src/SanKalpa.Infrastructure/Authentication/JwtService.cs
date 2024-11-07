@@ -35,7 +35,7 @@ internal sealed class JwtService : IJwtService
         var securityToken = new JwtSecurityToken(
             issuer: _jwtOptions.Issuer,
             audience: _jwtOptions.Audience,
-            expires:DateTime.Now.AddMinutes(_jwtOptions.ExpiryMinutes),
+            expires:DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes),
             claims: claims,
             signingCredentials: signingCredentials);
 

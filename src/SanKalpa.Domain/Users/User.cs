@@ -26,8 +26,8 @@ public sealed class User : Entity
         UserName = userName;
         EmailAddress = emailAddress;
         Password = userPassword;
-        CreatedAt = DateTime.Now;
-        UpdatedAt = DateTime.Now;
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public static User Create(
