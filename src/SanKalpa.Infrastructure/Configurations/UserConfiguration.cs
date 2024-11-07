@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SanKalpa.Domain.Users;
-using SanKalpa.Domain.Users.ValueObjects;
 
 namespace SanKalpa.Infrastructure.Configurations;
 
