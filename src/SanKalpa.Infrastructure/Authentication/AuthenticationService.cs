@@ -42,13 +42,16 @@ internal sealed class AuthenticationService : IAuthenticationService
 
     public async Task<string> LoginAsync(string emailAddress, string password, CancellationToken cancellationToken = default)
     {
-        User? user = await _userRepository.GetByEmailAddressAsync(emailAddress, cancellationToken);
-        if (user == null) 
+        User? user = await _userRepository.GetByEmailAsync(emailAddress, cancellationToken);
+        if (user != null)
         {
-            throw new Exception("Invalid credentials");
+            bool isPasswordValid = _passwordHashService.VerifyHashedPassword(user.Password.Value, password);
+            if (isPasswordValid)
+            {
+                return _jwtService.GenerateJwtToken(user);
+            }
         }
 
-        string token = _jwtService.GenerateJwtToken(user);
-        return token;
+        return string.Empty;
     }
 }

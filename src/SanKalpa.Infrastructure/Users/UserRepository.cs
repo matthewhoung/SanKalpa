@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SanKalpa.Domain.Users;
-using SanKalpa.Domain.Users.ValueObjects;
 
 namespace SanKalpa.Infrastructure.Repositories;
 
@@ -11,14 +10,11 @@ internal sealed class UserRepository : Repository<User>, IUserRepository
     {
     }
 
-    public async Task<User?> GetByEmailAddressAsync(
-        string emailAddress, 
+    public async Task<User?> GetByEmailAsync(
+        string email, 
         CancellationToken cancellationToken = default)
     {
         return await DbContext
-            .Set<User>()
-            .FirstOrDefaultAsync(
-            user => user.EmailAddress.Value == emailAddress,
-            cancellationToken);
+            .Set<User>().FirstOrDefaultAsync(user => user.EmailAddress.Value == email, cancellationToken);
     }
 }

@@ -13,28 +13,31 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasKey(key => key.Id);
 
-        builder.Property(userName => userName.UserName)
+        builder.OwnsOne(userName => userName.UserName, userName =>
+        {
+            userName.Property(name => name.Value)
             .HasColumnName("user_name")
-            .HasConversion(firstName => firstName.Value,
-                           value => new UserName(value))
-            .HasMaxLength(20)
+            .HasMaxLength(50)
             .IsRequired();
+        });
 
-        builder.Property(emailAddress => emailAddress.EmailAddress)
+        builder.OwnsOne(emailAddress => emailAddress.EmailAddress, emailAddress =>
+        {
+            emailAddress.Property(email => email.Value)
             .HasColumnName("email_address")
-            .HasConversion(emailAddress => emailAddress.Value,
-                           value => new EmailAddress(value))
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(userPassword => userPassword.Password)
-            .HasColumnName("user_password")
-            .HasConversion(userPassword => userPassword.Value,
-                           value => new Password(value))
+            emailAddress.HasIndex(email => email.Value).IsUnique();
+        });
+
+        builder.OwnsOne(password => password.Password, password =>
+        {
+            password.Property(password => password.Value)
+            .HasColumnName("password")
             .HasMaxLength(255)
             .IsRequired();
-
-        builder.HasIndex(emailAddress => emailAddress.EmailAddress).IsUnique();
+        });
 
         builder.Property(createdAt => createdAt.CreatedAt)
             .HasColumnName("created_at")
@@ -45,3 +48,4 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
     }
 }
+
