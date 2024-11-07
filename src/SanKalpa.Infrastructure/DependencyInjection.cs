@@ -2,8 +2,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SanKalpa.Application.Abstrations.Data;
+using SanKalpa.Domain;
 using SanKalpa.Domain.Abstrations;
+using SanKalpa.Domain.Users;
 using SanKalpa.Infrastructure.Data;
+using SanKalpa.Infrastructure.Repositories;
+using SanKalpa.Infrastructure.Users;
 
 namespace SanKalpa.Infrastructure;
 
@@ -35,5 +39,8 @@ public static class DependencyInjection
 
         services.AddSingleton<ISqlConnectionFactory>(_ =>
             new SqlConnectionFactory(connectionString));
+
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
     }
 }

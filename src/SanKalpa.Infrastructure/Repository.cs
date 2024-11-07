@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SanKalpa.Domain.Abstrations;
 
-namespace SanKalpa.Infrastructure.Repositories;
+namespace SanKalpa.Infrastructure;
 
 internal abstract class Repository<T>
     where T : Entity
