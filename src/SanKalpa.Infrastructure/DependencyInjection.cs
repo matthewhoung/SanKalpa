@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -55,28 +54,41 @@ public static class DependencyInjection
         IServiceCollection services,
         IConfiguration configuration)
     {
-        var jwtOptions = new JwtOptions();
-        configuration.GetSection("Jwt").Bind(jwtOptions);
-
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = jwtOptions.Audience,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
-
-        services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+        // Configure Authentication Options
+        services.ConfigureOptions<AuthenticationOptionsSetup>();
+        // Configure JWT Options
         services.ConfigureOptions<JwtOptionsSetup>();
+        services.ConfigureOptions<JwtBearerOptionsSetup>();
+
+        // Add Authentication with JWT Bearer
+        var authenticationOptions = new AuthenticationOptions();
+        var jwtOptions = new JwtOptions();
+
+        configuration.GetSection(AuthenticationOptions.SectionName).Bind(authenticationOptions);
+        configuration.GetSection(JwtOptions.SectionName).Bind(jwtOptions);
+
+        // Add Authentication
+        services.AddAuthorization();
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = authenticationOptions.DefaultScheme;
+            options.DefaultChallengeScheme = authenticationOptions.DefaultChallengeScheme;
+            options.DefaultAuthenticateScheme = authenticationOptions.DefaultAuthenticateScheme;
+        }).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidateAudience = true,
+                ValidAudience = jwtOptions.Audience,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
         // Register services
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();

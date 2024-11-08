@@ -14,12 +14,12 @@ internal sealed class LoginCommandHandler : ICommandHandler<LoginCommand, string
     private readonly IPasswordHashService _passwordHashService;
 
     private static readonly Error InvalidEmail = new(
-        "Access Denied!",
-        "Login : Invalid EmailAddress.");
+        "404 Bad Request",
+        "LoginHandler : Invalid EmailAddress.");
 
     private static readonly Error InvalidPassword = new(
-        "Access Denied!",
-        "Login : Invalid Password.");
+        "404 Bad Request",
+        "LoginHandler : Invalid Password.");
 
     public LoginCommandHandler(
         IJwtService jwtService,

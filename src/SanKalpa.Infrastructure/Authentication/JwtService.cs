@@ -24,22 +24,23 @@ public sealed class JwtService : IJwtService
     public Result<string> TokenGenerator(
         Guid userId,
         string userName,
-        string emailAddress, 
+        string emailAddress,
         string password,
         CancellationToken cancellationToken = default)
     {
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
 
             var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new(JwtRegisteredClaimNames.Email, emailAddress),
-            new(JwtRegisteredClaimNames.UniqueName, userName),
-        };
+            {
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                new(JwtRegisteredClaimNames.Email, emailAddress),
+                new(JwtRegisteredClaimNames.UniqueName, userName),
+            };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -47,7 +48,9 @@ public sealed class JwtService : IJwtService
                 Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes),
                 Issuer = _jwtOptions.Issuer,
                 Audience = _jwtOptions.Audience,
-                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(
+                    key,
+                    SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

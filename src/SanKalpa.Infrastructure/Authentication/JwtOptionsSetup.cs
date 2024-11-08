@@ -1,34 +1,19 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace SanKalpa.Infrastructure.Authentication;
 
-public class JwtOptionsSetup : IConfigureOptions<JwtBearerOptions>
+public sealed class JwtOptionsSetup : IConfigureOptions<JwtOptions>
 {
-    private readonly JwtOptions _jwtOptions;
+    private readonly IConfiguration _configuration;
 
-    public JwtOptionsSetup(IOptions<JwtOptions> options)
+    public JwtOptionsSetup(IConfiguration configuration)
     {
-        _jwtOptions = options.Value;
+        _configuration = configuration;
     }
 
-    public void Configure(JwtBearerOptions options)
+    public void Configure(JwtOptions options)
     {
-        var secretKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = _jwtOptions.Issuer,
-            ValidateAudience = true,
-            ValidAudience = _jwtOptions.Audience,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = secretKey,
-            ClockSkew = TimeSpan.Zero
-        };
+        _configuration.GetSection(JwtOptions.SectionName).Bind(options);
     }
 }
