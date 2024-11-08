@@ -1,25 +1,60 @@
-﻿using SanKalpa.Application.Abstrations.Authentication;
+﻿using Microsoft.VisualBasic;
+using SanKalpa.Application.Abstrations.Authentication;
 using SanKalpa.Application.Abstrations.Messaging;
 using SanKalpa.Domain.Abstrations;
+using SanKalpa.Domain.Services;
+using SanKalpa.Domain.Users;
 
 namespace SanKalpa.Application.Users.Login;
 
 internal sealed class LoginCommandHandler : ICommandHandler<LoginCommand, string>
 {
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IJwtService _jwtService;
+    private readonly IUserRepository _userRepository;
+    private readonly IPasswordHashService _passwordHashService;
 
-    public LoginCommandHandler(IAuthenticationService authenticationService)
+    private static readonly Error InvalidEmail = new(
+        "Access Denied!",
+        "Login : Invalid EmailAddress.");
+
+    private static readonly Error InvalidPassword = new(
+        "Access Denied!",
+        "Login : Invalid Password.");
+
+    public LoginCommandHandler(
+        IJwtService jwtService,
+        IUserRepository userRepository,
+        IPasswordHashService passwordHashService)
     {
-        _authenticationService = authenticationService;
+        _jwtService = jwtService;
+        _userRepository = userRepository;
+        _passwordHashService = passwordHashService;
     }
 
     public async Task<Result<string>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        string token = await _authenticationService.LoginAsync(
-            request.EmailAddress,
-            request.Password,
-            cancellationToken);
+        User user = await _userRepository.GetByEmailAsync(request.EmailAddress, cancellationToken);
+        if (user == null)
+        {
+            return Result.Failure<string>(InvalidEmail);
+        }
 
-        return Result<string>.Success(token);
+        bool isValidPassword = _passwordHashService.VerifyHashedPassword(
+            user.Password.Value,
+            request.Password);
+
+        if (!isValidPassword)
+        {
+            return Result.Failure<string>(InvalidPassword);
+        }
+
+        var token = _jwtService.TokenGenerator(
+            user.Id,
+            user.UserName.Value,
+            user.EmailAddress.Value,
+            user.Password.Value);
+
+        return Result.Success(token.Value);
+
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SanKalpa.Application.Abstrations.Authentication;
-using SanKalpa.Domain.Users;
+using SanKalpa.Domain.Abstrations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -10,6 +10,10 @@ namespace SanKalpa.Infrastructure.Authentication;
 
 public sealed class JwtService : IJwtService
 {
+    private static readonly Error AuthenticationFailed = new(
+        "Authentication.Failed",
+        "Failed to acquire token due to authentication failure.");
+
     private readonly JwtOptions _jwtOptions;
 
     public JwtService(IOptions<JwtOptions> jwtOptions)
@@ -17,55 +21,43 @@ public sealed class JwtService : IJwtService
         _jwtOptions = jwtOptions.Value;
     }
 
-    public string GenerateJwtToken(User user)
+    public Result<string> TokenGenerator(
+        Guid userId,
+        string userName,
+        string emailAddress, 
+        string password,
+        CancellationToken cancellationToken = default)
     {
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName.Value),
-            new Claim(JwtRegisteredClaimNames.Email, user.EmailAddress.Value)
-        };
-
-        var secretKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
-
-        var creds = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes);
-
-        var token = new JwtSecurityToken(
-            issuer: _jwtOptions.Issuer,
-            audience: _jwtOptions.Audience,
-            claims: claims,
-            expires: expires,
-            signingCredentials: creds);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    public ClaimsPrincipal? ValidateToken(string token)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var secretKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
-
         try
         {
-            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = _jwtOptions.Issuer,
-                ValidateAudience = true,
-                ValidAudience = _jwtOptions.Audience,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = secretKey,
-                ClockSkew = TimeSpan.Zero
-            }, out SecurityToken validatedToken);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
 
-            return principal;
+            var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new(JwtRegisteredClaimNames.Email, emailAddress),
+            new(JwtRegisteredClaimNames.UniqueName, userName),
+        };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes),
+                Issuer = _jwtOptions.Issuer,
+                Audience = _jwtOptions.Audience,
+                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return Result.Success(tokenString);
         }
         catch
         {
-            return null;
+            return Result.Failure<string>(AuthenticationFailed);
         }
     }
 }

@@ -29,29 +29,20 @@ internal sealed class AuthenticationService : IAuthenticationService
     {
         string passwordHash = _passwordHashService.HashPassword(user.Password.Value);
 
-        User createRegistration = User.Create(
+        User register = User.Create(
             user.UserName,
             user.EmailAddress,
             new Password(passwordHash));
 
-        _userRepository.Add(createRegistration);
+        _userRepository.Add(register);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return _jwtService.GenerateJwtToken(createRegistration);
-    }
+        var token = _jwtService.TokenGenerator(
+            register.Id,
+            register.UserName.Value,
+            register.EmailAddress.Value,
+            register.Password.Value);
 
-    public async Task<string> LoginAsync(string emailAddress, string password, CancellationToken cancellationToken = default)
-    {
-        User? user = await _userRepository.GetByEmailAsync(emailAddress, cancellationToken);
-        if (user != null)
-        {
-            bool isPasswordValid = _passwordHashService.VerifyHashedPassword(user.Password.Value, password);
-            if (isPasswordValid)
-            {
-                return _jwtService.GenerateJwtToken(user);
-            }
-        }
-
-        return string.Empty;
+        return token.Value;
     }
 }
