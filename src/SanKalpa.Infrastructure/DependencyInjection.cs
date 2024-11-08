@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using SanKalpa.Application.Abstrations.Authentication;
 using SanKalpa.Application.Abstrations.Data;
 using SanKalpa.Domain.Abstrations;
@@ -11,6 +12,7 @@ using SanKalpa.Infrastructure.Authentication;
 using SanKalpa.Infrastructure.Data;
 using SanKalpa.Infrastructure.Repositories;
 using SanKalpa.Infrastructure.Services;
+using System.Text;
 
 namespace SanKalpa.Infrastructure;
 
@@ -53,8 +55,25 @@ public static class DependencyInjection
         IServiceCollection services,
         IConfiguration configuration)
     {
+        var jwtOptions = new JwtOptions();
+        configuration.GetSection("Jwt").Bind(jwtOptions);
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer();
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
 
         services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
         services.ConfigureOptions<JwtOptionsSetup>();
