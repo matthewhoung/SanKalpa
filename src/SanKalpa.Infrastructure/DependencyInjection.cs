@@ -92,5 +92,6 @@ public static class DependencyInjection
         // Register services
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
     }
 }
