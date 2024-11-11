@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /dev_containers
 /src/SanKalpa.Infrastructure/Migrations
+/.container/data
+/docker-compose.yml
+/postgres-setup.ps1
