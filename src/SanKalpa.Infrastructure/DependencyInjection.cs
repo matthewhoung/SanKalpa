@@ -93,5 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<ILoginAttemptService, LoginAttemptService>();
+        services.AddHttpContextAccessor();
     }
 }

@@ -35,8 +35,6 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
 
         builder.HasIndex(token => token.Token).IsUnique();
 
-        builder.HasIndex(userId => userId.UserId).IsUnique();
-
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(refreshToken => refreshToken.UserId)
