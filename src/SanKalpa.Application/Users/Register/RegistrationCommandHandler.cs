@@ -6,16 +6,20 @@ using SanKalpa.Domain.Users.ValueObjects;
 
 namespace SanKalpa.Application.Users.Register;
 
-internal sealed class RegistrationCommandHandler : ICommandHandler<RegistrationCommand, string>
+internal sealed class RegistrationCommandHandler : ICommandHandler<RegistrationCommand, RegisterResponse>
 {
     private readonly IAuthenticationService _authenticationService;
+    private readonly IRefreshTokenService _refreshTokenService;
 
-    public RegistrationCommandHandler(IAuthenticationService authenticationService)
+    public RegistrationCommandHandler(
+        IAuthenticationService authenticationService,
+        IRefreshTokenService refreshTokenService)
     {
         _authenticationService = authenticationService;
+        _refreshTokenService = refreshTokenService;
     }
 
-    public async Task<Result<string>> Handle(RegistrationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<RegisterResponse>> Handle(RegistrationCommand request, CancellationToken cancellationToken)
     {
         User userInfo = User.Create(
             new UserName(request.UserName),
@@ -23,7 +27,10 @@ internal sealed class RegistrationCommandHandler : ICommandHandler<RegistrationC
             new Password(request.Password));
 
         string token = await _authenticationService.RegisterAsync(userInfo, cancellationToken);
+        string refreshToken = await _refreshTokenService.RefreshTokenGeneratorAsync(userInfo.Id, cancellationToken);
 
-        return Result<string>.Success(token);
+        var response = new RegisterResponse(token, refreshToken);
+
+        return Result.Success(response);
     }
 }

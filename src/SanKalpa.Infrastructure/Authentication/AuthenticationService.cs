@@ -27,21 +27,22 @@ internal sealed class AuthenticationService : IAuthenticationService
 
     public async Task<string> RegisterAsync(User user, CancellationToken cancellationToken = default)
     {
+        var existingUser = await _userRepository.GetByEmailAsync(user.EmailAddress.Value, cancellationToken);
+        if (existingUser != null)
+        {
+            throw new InvalidOperationException("Email address is already registered");
+        }
+
         string passwordHash = _passwordHashService.HashPassword(user.Password.Value);
-
-        User register = User.Create(
-            user.UserName,
-            user.EmailAddress,
-            new Password(passwordHash));
-
-        _userRepository.Add(register);
+        user.SetPassword(new Password(passwordHash));
+        _userRepository.Add(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var token = _jwtService.TokenGenerator(
-            register.Id,
-            register.UserName.Value,
-            register.EmailAddress.Value,
-            register.Password.Value);
+            user.Id,
+            user.UserName.Value,
+            user.EmailAddress.Value,
+            user.Password.Value);
 
         return token.Value;
     }

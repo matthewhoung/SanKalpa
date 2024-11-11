@@ -45,4 +45,9 @@ public sealed class User : Entity
 
         return user;
     }
+
+    public void SetPassword(Password password)
+    {
+        Password = password;
+    }
 }
